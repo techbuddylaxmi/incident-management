@@ -1,0 +1,69 @@
+_schema-version: "3.2"
+ID: incident-management
+description: Fiori elements app
+version: 0.0.1
+modules:
+- name: incident-management-dest-content
+  type: com.sap.application.content
+  requires:
+  - name: incident-management-destination-service
+    parameters:
+      content-target: true
+  - name: incident-management-repo-host
+    parameters:
+      service-key:
+        name: incident-management-repo-host-key
+  - name: incident-management-uaa
+    parameters:
+      service-key:
+        name: incident-management-uaa-key
+  parameters:
+    content:
+      instance:
+        destinations:
+        - Name: incident-management_repo_host
+          ServiceInstanceName: incident-management-html5-srv
+          ServiceKeyName: incident-management-repo-host-key
+          sap.cloud.service: incident-management
+        - Authentication: OAuth2UserTokenExchange
+          Name: incident-management_uaa
+          ServiceInstanceName: incident-management-xsuaa-srv
+          ServiceKeyName: incident-management-uaa-key
+          sap.cloud.service: incident-management
+        existing_destinations_policy: update
+  build-parameters:
+    no-source: true
+resources:
+- name: incident-management-uaa
+  type: org.cloudfoundry.managed-service
+  parameters:
+    path: ./xs-security.json  
+    service: xsuaa
+    service-name: incident-management-xsuaa-srv
+    service-plan: application
+- name: incident-management-destination-service
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      HTML5Runtime_enabled: true
+      version: 1.0.0
+      init_data:
+        instance:
+          existing_destinations_policy: update
+          destinations:
+          - Name: ui5
+            Type: HTTP
+            URL: https://ui5.sap.com
+            ProxyType: Internet
+            Authentication: NoAuthentication
+    service: destination
+    service-name: incident-management-destination-service
+    service-plan: lite
+- name: incident-management-repo-host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-name: incident-management-html5-srv
+    service-plan: app-host
+parameters:
+  deploy_mode: html5-repo
